@@ -10,6 +10,8 @@ import {
 import { VmSafe } from "forge-std/Vm.sol";
 import { getLabel, getMappingKeyAndParentOf } from "./lib/Vm.sol";
 
+import { console } from "forge-std/console.sol";
+
 /**
  * @title ERC4337SpecsParser
  * @author kopy-kat
@@ -61,38 +63,54 @@ library ERC4337SpecsParser {
     )
         internal
     {
+        uint256 preGas = gasleft();
         // Get entities for the userOp
         Entities memory entities = getEntities(userOpDetails);
+        console.log("Gas used by getEntities", preGas - gasleft());
 
+        preGas = gasleft();
         // Filter debug trace to get the debug steps for the userOp and paymasterUserOp
         (
             VmSafe.DebugStep[] memory filteredUserOpSteps,
             VmSafe.DebugStep[] memory filteredPaymasterUserOpSteps
         ) = filterDebugTrace(debugTrace, entities, userOpDetails.entryPoint);
+        console.log("Gas used by filterDebugTrace", preGas - gasleft());
 
+        preGas = gasleft();
         // Validate banned opcodes for the userOp and paymasterUserOp
         validateBannedOpcodes(filteredUserOpSteps, entities);
         validateBannedOpcodes(filteredPaymasterUserOpSteps, entities);
+        console.log("Gas used by validateBannedOpcodes", preGas - gasleft());
 
+        preGas = gasleft();
         // Validate there are not out of gas errors for the userOp and paymasterUserOp
         validateOutOfGas(filteredUserOpSteps);
         validateOutOfGas(filteredPaymasterUserOpSteps);
+        console.log("Gas used by validateOutOfGas", preGas - gasleft());
 
+        preGas = gasleft();
         // Validate banned storage locations
         validateBannedStorageLocations(filteredUserOpSteps, entities, userOpDetails);
         validateBannedStorageLocations(filteredPaymasterUserOpSteps, entities, userOpDetails);
+        console.log("Gas used by validateBannedStorageLocations", preGas - gasleft());
 
+        preGas = gasleft();
         // Validate calls using filtered steps
         validateCalls(filteredUserOpSteps, entities, userOpDetails.entryPoint);
         validateCalls(filteredPaymasterUserOpSteps, entities, userOpDetails.entryPoint);
+        console.log("Gas used by validateCalls", preGas - gasleft());
 
+        preGas = gasleft();
         // Validate ext opcodes using filtered steps
         validateExtOpcodes(filteredUserOpSteps, entities);
         validateExtOpcodes(filteredPaymasterUserOpSteps, entities);
+        console.log("Gas used by validateExtOpcodes", preGas - gasleft());
 
+        preGas = gasleft();
         // Validate create using filtered steps
         validateCreate(filteredUserOpSteps, entities, userOpDetails);
         validateCreate(filteredPaymasterUserOpSteps, entities, userOpDetails);
+        console.log("Gas used by validateCreate", preGas - gasleft());
     }
 
     /**

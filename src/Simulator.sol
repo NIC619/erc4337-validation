@@ -21,6 +21,8 @@ import {
 } from "./lib/Vm.sol";
 import { ERC4337SpecsParser } from "./SpecsParser.sol";
 
+import { console } from "forge-std/console.sol";
+
 /**
  * @title Simulator
  * @author kopy-kat
@@ -161,11 +163,15 @@ library Simulator {
      * @param userOpDetails The UserOperationDetails to validate
      */
     function _postSimulation(UserOperationDetails memory userOpDetails) internal {
+        uint256 preGas = gasleft();
         // Get the recorded opcodes
         VmSafe.DebugStep[] memory debugTrace = stopAndReturnDebugTraceRecording();
+        console.log("Gas used by stopAndReturnDebugTraceRecording", preGas - gasleft());
 
+        preGas = gasleft();
         // Validate the ERC-4337 rules
         ERC4337SpecsParser.parseValidation(userOpDetails, debugTrace);
+        console.log("Gas used by parseValidation", preGas - gasleft());
 
         // Stop (and remove) recording mapping accesses
         stopMappingRecording();
